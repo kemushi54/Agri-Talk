@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1542807212280.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3820817374",
+    "id" : "E9A695CF",
+    "lastKnownWriteTime" : 1542813886,
+    "last_content_update" : 1542813886889,
+    "path" : "C:/kemushi/Agri-Talk/script/scrape.R",
+    "project_path" : "script/scrape.R",
+    "properties" : {
+        "cursorPosition" : "29,13",
+        "scrollLine" : "20",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
