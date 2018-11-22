@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1542887579447.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "EF813A5B",
+    "lastKnownWriteTime" : 1542891405,
+    "last_content_update" : 1542891405399,
+    "path" : "D:/Private/Agri-Talk/script/scrape.R",
+    "project_path" : "script/scrape.R",
+    "properties" : {
+        "cursorPosition" : "9,0",
+        "scrollLine" : "7"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

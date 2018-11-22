@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1542890790241.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "A3F630AE",
+    "lastKnownWriteTime" : 1542896000,
+    "last_content_update" : 1542896000352,
+    "path" : "D:/Private/Agri-Talk/script/crop_pest_checklist.R",
+    "project_path" : "script/crop_pest_checklist.R",
+    "properties" : {
+        "cursorPosition" : "15,12",
+        "scrollLine" : "8",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
