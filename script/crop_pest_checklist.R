@@ -11,8 +11,9 @@ library(writexl)
 # Sys.setlocale(category="LC_ALL", locale="C")
 
 # url of maize
-url <- sprintf("http://210.69.150.201/InsectTest/Search.asp?pageNo=%s&keyWord=&CropInum=10268",
-               1:3)
+url <- 
+  sprintf("http://210.69.150.201/InsectTest/Search.asp?pageNo=%s&keyWord=&CropInum=10268",
+          1:3)
 
 # xpath location for pest table
 xpath = '//*[@id="table32"]'
