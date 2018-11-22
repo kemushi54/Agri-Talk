@@ -26,6 +26,6 @@ checklist <-
            html_nodes(xpath = xpath) %>% 
            html_table(fill = TRUE) %>% 
            as.data.table(.[[1]]) %>% 
-           .[5:55, 1:6]) %>% 
+           .[5:54, 1:6]) %>% 
   do.call(rbind, .) %>% 
   write_xlsx("pest_checklist.xlsx")
