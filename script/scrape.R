@@ -28,7 +28,8 @@ curlEscape(content[24])
 
 url.0 <- "http://web.tari.gov.tw/techcd/%E8%94%AC%E8%8F%9C/%E6%9E%9C%E8%8F%9C%E9%A1%9E/%E7%8E%89%E7%B1%B3/%E8%9F%B2%E5%AE%B3/"
 
-url.test <- sprintf("%s%s", url.0, curlEscape(content[25]))
+url.test <- sprintf("%s%s", 
+                    url.0, curlEscape(content[25]))
 ### for loop or lapply 藥劑資訊
 
 
@@ -36,18 +37,23 @@ url.test <- sprintf("%s%s", url.0, curlEscape(content[25]))
 # for content
 ### 文字可能ok，還要想辦法表格化
 
-xpath <- '//*[@id="table3"]'
+# # xpath for 
+# xpath <- '//*[@id="table3"]'
 # table 會落在1-4之間，也有可能沒有...
-
 pest.info <- 
   read_html(url.test) %>% 
-  html_nodes(xpath = xpath) %>% 
-  html_text %>% 
-  str_replace_all("\\s", "_") %>% 
-  str_split(pattern = "_") %>% 
-  unlist
+  html_table(fill = TRUE)
+
+
+# pest.info <- 
+#   read_html(url.test) %>% 
+#   html_nodes(xpath = xpath) %>% 
+#   html_text %>% 
+#   str_replace_all("\\s", "_") %>% 
+#   str_split(pattern = "_") %>% 
+#   unlist
 
 # 
-text.clean <- 
-  pest.info[pest.info != ""]
+# text.clean <- 
+#   pest.info[pest.info != ""]
 
