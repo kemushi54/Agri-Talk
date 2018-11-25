@@ -45,7 +45,9 @@ pest.sci <-
            html_nodes("i span") %>% 
            html_text %>% 
            str_replace_all("\r|\n|\t", "") %>% 
-           .[1])
+           .[1]) %>%
+  # turn to vextor
+  do.call(rbind, .)
 
 ### use lapply get 藥劑資訊/ Scientific name
 pest.info <- 
@@ -59,7 +61,7 @@ pest.info <-
            setDT %>% 
            .[-1] %>% 
            .[, Pest := pest.C[x]] %>% 
-           .[, Pest.Sci := pest.sci[[x]]]
+           .[, Pest.Sci := pest.sci[x]]
   ) %>% 
   do.call(rbind, .)
 
@@ -78,5 +80,31 @@ pest.info.clean <-
 write_xlsx(pest.info.clean,
            "pest_agent_maiz.xlsx")
 
-### use pest.sci to get photo url in google search engine
+### use pest.sci - photo url (google search engine)
+search.pest.sci <- 
+  str_split(pest.sci, " ") %>% 
+  lapply(function(x)
+    x[1:2] %>% 
+      paste(., collapse = "+")) 
+      
 
+google.url <- sprintf("https://www.google.com.tw/search?q=%s&source=lnms&tbm=isch&sa=X&ved=0ahUKEwi4ibz_te3eAhXIXLwKHVe5AWIQ_AUIDigB&biw=1280&bih=610",
+               search.pest.sci)
+
+google.image.url <- 
+  lapply(google.url, 
+         function(x)
+           read_html(x) %>% 
+           html_nodes(xpath = '//img') %>% 
+           html_attr("src") %>% 
+           .[1]) %>% 
+  do.call(rbind, .)
+
+pest.google.image <- 
+  data.frame(pest.Sci = pest.sci,
+             image.url = google.image.url)
+write_xlsx(pest.google.image,
+           "pest_googleIMG.xlsx")
+
+# download.file(t[1], "C:/kemushi/test.png",
+#               mode = "wb")
