@@ -20,10 +20,12 @@ content <-
 tttt.url <- 
   "https://pesticide.baphiq.gov.tw/web/Insecticides_MenuItem5_5.aspx?fbclid=IwAR0338cG-ggIad981OY7nE8p1quZ04a6qbCQ_uSifFqyCHEFG51LMHu-Rbs"
 
+
 cot <- 
   read_html(tttt.url) %>% 
-  html_name()
-  html_nodes(xpath = '//*[(@id = "ctl00_ContentPlaceHolder1_updPnl")]') %>%
+  html_nodes("#ctl00_ContentPlaceHolder1_updPnl td")[3] %>% 
+  html_table(., fill = TRUE)
+  html_nodes(xpath = '//*[(@id = "ctl00_ContentPlaceHolder1_updPnl")]/table[2]') %>%
   html_text
 
 "#ctl00_ContentPlaceHolder1_updPnl table"
