@@ -8,8 +8,8 @@ library(rvest)
 library(writexl)
 library(dplyr)
 
-# chemical
-# import url needed (crop-pest)
+#---- chemical
+#-- import url needed (crop-pest)
 url.dat <-
   read_xlsx("data/1210更新玉米化學與非化學藥劑防治.xlsx",
             sheet = 1) %>% 
@@ -17,7 +17,7 @@ url.dat <-
   # remove non-link item
   .[`防治藥劑` %like% "https"]
 
-# scrape part
+#-- scrape part
 content <- 
   lapply(1:nrow(url.dat), 
          function(x)
@@ -37,7 +37,7 @@ content <-
   ) %>%
   do.call(rbind, .)
 
-# export as xlsx
+#-- export as xlsx
 write_xlsx(content, "Results/Baphiq_info.xlsx")
 
 content <- 
@@ -69,6 +69,7 @@ item.2 <-
            `廠商名稱`)] %>% 
   unique
 
+# bind two source of item agent-item contect
 item.all <- 
   rbind(item, item.2) %>% 
   unique %>% 
@@ -78,17 +79,19 @@ item.all <-
   .[, `廠商名稱` := gsub("台灣", "臺灣", `廠商名稱`)] %>% 
   unique
 
+# agent list
 agent.list <- 
   item.all[, "藥劑名稱"] %>% unique
 
 write_xlsx(agent.list, "Results/藥劑清單.xlsx")
 
-# merge all together with item name
+#-- merge all together with item name
 final.dat <- 
   inner_join(content, item.all) %>% 
   unique %>% 
   setDT
 
+#-- extract maiz part of data
 maiz.dat <- 
   final.dat[`目標作物` == "甜玉米"]
 
@@ -100,32 +103,48 @@ dat.1 <-
   read_xlsx("data/1210更新玉米化學與非化學藥劑防治.xlsx",
             sheet = 2) %>%
   setDT %>% 
-  .[, list(Crop = TGAP品項,
-           Pest = TGAP害蟲,
-           Agent = 生物農藥)] %>% 
-  .[Crop == "甜玉米"]
+  .[, list(`目標作物` = `TGAP品項`,
+           `蟲害種類` = `TGAP害蟲`,
+           `藥劑名稱` = `生物農藥`)] %>% 
+  .[`目標作物` == "甜玉米"]
 
 dat.2 <- 
   read_xlsx("data/1210梁力仁補充 蟲體描述與非化學資材表.xlsx",
             sheet = 2) %>% 
   setDT %>% 
-  .[, list(Crop = "甜玉米",
-         Pest = 防治對象,
-         Agent = 非化學農藥防治)] %>% 
-  .[Pest %in% dat.1$Pest]
+  .[, list(`目標作物` = "甜玉米",
+         `蟲害種類` = 防治對象,
+         `藥劑名稱` = 非化學農藥防治)] %>% 
+  .[`蟲害種類` %in% dat.1$`蟲害種類`]
 
 non.che.all <- 
   rbind(dat.1, dat.2) %>% 
   setDT %>% 
-  unique
+  unique %>% 
+  .[!is.na(`藥劑名稱`)]
 
 #-- agent-item
 item.dat.1 <- 
   read_xlsx("data/生物性農藥-已取證之生物農藥產品(含連絡資訊).xlsx",
             sheet = 2, skip = 2) %>% 
-  setDT
+  setDT %>% 
+  .[, list(`藥劑名稱` = `普通名稱`,
+           `商品名稱` = `商品名`,
+           `廠商名稱` = `登記廠商`)] %>% 
+  .[!is.na(`商品名稱`)]
 
 item.dat.2 <- 
   read_xlsx("data/非化學藥劑-商品化免登記資材與病蟲害表.xlsx",
             sheet = 1) %>% 
-  setDT
+  setDT %>% 
+  .[, list(`藥劑名稱` = `資 材 品 項`,
+           `商品名稱` = `商 品 名 稱`,
+           `廠商名稱` = `廠 商 名 稱`)] %>% 
+  .[!is.na(`藥劑名稱`)]
+
+non.che.item.all <- 
+  rbind(item.dat.1, item.dat.2) %>% 
+  unique %>% 
+  inner_join(non.che.all, .)
+
+write_xlsx(non.che.item.all, "Results/甜玉米非化學藥劑商品關聯.xlsx")
