@@ -1,17 +1,23 @@
+# scrape crop-pest-agent info from BAPHIQ
+
+#-- load library
 library(readxl)
 library(data.table)
 library(magrittr)
 library(rvest)
 library(writexl)
+library(dplyr)
 
+# chemical
+# import url needed (crop-pest)
 url.dat <-
-  read_xlsx("data/防檢局作物蟲害對應化學藥劑資料表.xlsx",
-            col_names = TRUE) %>% 
+  read_xlsx("data/1210更新玉米化學與非化學藥劑防治.xlsx",
+            sheet = 1) %>% 
   setDT %>% 
   # remove non-link item
   .[`防治藥劑` %like% "https"]
 
-
+# scrape part
 content <- 
   lapply(1:nrow(url.dat), 
          function(x)
@@ -31,27 +37,95 @@ content <-
   ) %>%
   do.call(rbind, .)
 
+# export as xlsx
 write_xlsx(content, "Results/Baphiq_info.xlsx")
 
+content <- 
+  read_xlsx("Results/Baphiq_info.xlsx") %>% 
+  setDT %>% 
+  .[, list(`目標作物` = Crop,
+           `蟲害種類` = Pest,
+           `藥劑名稱` = `普通名稱`,
+           # `使用時期`,
+           `施藥間隔`,
+           `安全採收期`
+           )] %>% 
+  unique
 
-###############################
-# join with item name
+#-- import info of agent-item
+# source 1
 item <- 
   fread("data/農藥名稱手冊.csv") %>% 
-  .[, list(`普通名稱` = Name, 
-           EnName)] %>% 
+  .[, list(`藥劑名稱` = Name, 
+           `商品名稱` = ProductName,
+           `廠商名稱` = CompanyName)] %>% 
   unique
+# source 2
 item.2 <- 
   read_xlsx("data/農藥資料查詢.xlsx") %>% 
   setDT %>% 
-  .[, list(`普通名稱` = `中文名稱`,
-           EnName = `英文名稱`)] %>% 
+  .[, list(`藥劑名稱` = `中文名稱`,
+           `商品名稱` = `廠牌名稱`,
+           `廠商名稱`)] %>% 
   unique
 
 item.all <- 
   rbind(item, item.2) %>% 
-  .[, EnName := "TT"] %>% 
+  unique %>% 
+  setDT %>% 
+  .[is.na(`商品名稱`) | `商品名稱` == "" | `商品名稱` %like% "\\*|＊", 
+    `商品名稱` := sprintf("%s的%s", `廠商名稱`, `藥劑名稱`)] %>% 
+  .[, `廠商名稱` := gsub("台灣", "臺灣", `廠商名稱`)] %>% 
   unique
 
+agent.list <- 
+  item.all[, "藥劑名稱"] %>% unique
+
+write_xlsx(agent.list, "Results/藥劑清單.xlsx")
+
+# merge all together with item name
 final.dat <- 
-  item.all[content, on = "普通名稱"]
+  inner_join(content, item.all) %>% 
+  unique %>% 
+  setDT
+
+maiz.dat <- 
+  final.dat[`目標作物` == "甜玉米"]
+
+write_xlsx(maiz.dat, "Results/甜玉米化學藥劑商品關聯.xlsx")
+
+#---- non-chemical maiz
+#-- pest-agent
+dat.1 <- 
+  read_xlsx("data/1210更新玉米化學與非化學藥劑防治.xlsx",
+            sheet = 2) %>%
+  setDT %>% 
+  .[, list(Crop = TGAP品項,
+           Pest = TGAP害蟲,
+           Agent = 生物農藥)] %>% 
+  .[Crop == "甜玉米"]
+
+dat.2 <- 
+  read_xlsx("data/1210梁力仁補充 蟲體描述與非化學資材表.xlsx",
+            sheet = 2) %>% 
+  setDT %>% 
+  .[, list(Crop = "甜玉米",
+         Pest = 防治對象,
+         Agent = 非化學農藥防治)] %>% 
+  .[Pest %in% dat.1$Pest]
+
+non.che.all <- 
+  rbind(dat.1, dat.2) %>% 
+  setDT %>% 
+  unique
+
+#-- agent-item
+item.dat.1 <- 
+  read_xlsx("data/生物性農藥-已取證之生物農藥產品(含連絡資訊).xlsx",
+            sheet = 2, skip = 2) %>% 
+  setDT
+
+item.dat.2 <- 
+  read_xlsx("data/非化學藥劑-商品化免登記資材與病蟲害表.xlsx",
+            sheet = 1) %>% 
+  setDT
