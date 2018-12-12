@@ -79,17 +79,38 @@ item.all <-
   .[, `廠商名稱` := gsub("台灣", "臺灣", `廠商名稱`)] %>% 
   unique
 
-# agent list
-agent.list <- 
-  item.all[, "藥劑名稱"] %>% unique
+# # agent list
+# agent.list <- 
+#   item.all[, "藥劑名稱"] %>% unique
 
-write_xlsx(agent.list, "Results/藥劑清單.xlsx")
+# write_xlsx(agent.list, "Results/藥劑清單.xlsx")
+
+# non-chemical and rename info
+agent.info <- 
+  read_xlsx("data/藥劑清單_梁力仁修改.xlsx") %>% 
+  setDT %>% 
+  .[is.na(修正), 修正 := 藥劑名稱]
+
+# modified item.all
+item.all.md <- 
+  agent.info[, 1:3][item.all, on = "藥劑名稱"] %>% 
+  .[is.na(非化學藥劑)] %>% 
+  .[, 藥劑名稱 := NULL] %>% 
+  unique
+
+# modified content
+content.md <- 
+  agent.info[, 1:2][content, on = "藥劑名稱"] %>% 
+  .[, 藥劑名稱 := NULL] %>% 
+  unique
+
 
 #-- merge all together with item name
 final.dat <- 
-  inner_join(content, item.all) %>% 
+  inner_join(content.md, item.all.md) %>% 
   unique %>% 
-  setDT
+  setDT %>% 
+  setnames("修正", "藥劑名稱")
 
 #-- extract maiz part of data
 maiz.dat <- 
@@ -142,8 +163,18 @@ item.dat.2 <-
            `廠商名稱` = `廠 商 名 稱`)] %>% 
   .[!is.na(`藥劑名稱`)]
 
+
+item.dat.3 <- 
+  agent.info[, 1:3][item.all, on = "藥劑名稱"] %>% 
+  .[非化學藥劑 == 1] %>% 
+  .[, list(`藥劑名稱` = `修正`,
+           `商品名稱`,
+           `廠商名稱`)]
+  
+  
 non.che.item.all <- 
-  rbind(item.dat.1, item.dat.2) %>% 
+  list(item.dat.1, item.dat.2, item.dat.3) %>%
+  do.call(rbind, .) %>% 
   unique %>% 
   inner_join(non.che.all, .)
 
